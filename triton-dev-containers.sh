@@ -88,6 +88,7 @@ declare -A DEFAULT_ENV_OPTS=(
 	["PIP_VLLM_COMMIT"]=""
 	["PIP_VLLM_EXTRA_INDEX_URL"]=""
 	["PIP_VLLM_VERSION"]=""
+	["ROCM_RHEL_VERSION"]=9.7
 	["ROCM_VERSION"]=7.1.1
 	["ROCR_VISIBLE_DEVICES"]=${ROCR_VISIBLE_DEVICES:-0}
 	["TRITON_CPU_BACKEND"]=0
@@ -146,6 +147,7 @@ Options
         PIP_VLLM_COMMIT              vLLM git commit hash for wheel install ($VLLM_INDEX_URL_BASE/<commit>)
         PIP_VLLM_EXTRA_INDEX_URL     http://<url> [Not used with PIP_VLLM_COMMIT] (Default: $VLLM_INDEX_URL_BASE)
         PIP_VLLM_VERSION             vLLM wheel version
+        ROCM_RHEL_VERSION            RHEL version for ROCm repos (Default: ${DEFAULT_ENV_OPTS["ROCM_RHEL_VERSION"]})
         ROCM_VERSION                 ROCm version (Default: ${DEFAULT_ENV_OPTS["ROCM_VERSION"]})
         ROCR_VISIBLE_DEVICES         List of AMD device indices or UUIDs (i.e. 0,GPU-DEADBEEFDEADBEEF)
         USE_CCACHE                   Enable ccache [ 0 | 1 ] (Default: ${DEFAULT_ENV_OPTS["USE_CCACHE"]})
@@ -250,8 +252,8 @@ set_device_opts() {
 		)
 
 		set_env_opt ROCM_VERSION "${DEFAULT_ENV_OPTS["ROCM_VERSION"]}"
+		set_env_opt ROCM_RHEL_VERSION "${DEFAULT_ENV_OPTS["ROCM_RHEL_VERSION"]}"
 		set_env_opt ROCR_VISIBLE_DEVICES "${DEFAULT_ENV_OPTS["ROCR_VISIBLE_DEVICES"]}"
-		IMAGE_TAG="${ENV_OPTS["ROCM_VERSION"]}"-${DEFAULT_IMAGE_TAG}
 		;;
 	cuda)
 		if command -v nvidia-ctk >/dev/null 2>&1 && nvidia-ctk cdi list | grep -q "nvidia.com/gpu=all"; then
@@ -438,8 +440,8 @@ fi
 
 # Resolve image name from target device (cpu uses the base image)
 case ${TARGET_DEVICE,,} in
-	cpu|cuda|base) IMAGE_NAME=base ;;
-	*)             IMAGE_NAME=${TARGET_DEVICE} ;;
+	cpu|cuda|rocm|base) IMAGE_NAME=base ;;
+	*)                  IMAGE_NAME=${TARGET_DEVICE} ;;
 esac
 
 IMAGE=${IMAGE:-${DEFAULT_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG:-${DEFAULT_IMAGE_TAG}}}
