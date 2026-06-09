@@ -67,7 +67,7 @@ performance counters. Follow this
 
 #### Build Options
 
-Arguments that can be added to the build commands below, i.e. `OPTION=VALUE`.
+Arguments that can be added to the build command below, i.e. `OPTION=VALUE`.
 
 - `CENTOS_VERSION`
   - CentOS Stream image version to use, i.e. `9`
@@ -76,27 +76,15 @@ Arguments that can be added to the build commands below, i.e. `OPTION=VALUE`.
   - <https://github.com/tianon/gosu>
 - `PYTHON_VERSION`
   - Use the desired RPM package version, i.e. `3.12`
-- `ROCM_VERSION`
-  - Use the ROCm RPM package version, i.e. `7.1.1`
-- `ROCM_RHEL_VERSION`
-  - Use the ROCm RPM package for specified RHEL version, i.e. `9.7`
 
-#### All of the container images
+#### Container build
 
-```sh
-make build-images [OPTIONS]
-```
-
-#### Base container build
+A single base image is built that supports all accelerator backends
+(CUDA, ROCm, CPU). The accelerator SDK and version are selected at
+container runtime.
 
 ```sh
 make base-image [OPTIONS]
-```
-
-#### AMD ROCm container build
-
-```sh
- make rocm-image [OPTIONS]
 ```
 
 ---
@@ -111,8 +99,10 @@ Arguments that can be added to the run commands below, i.e. `OPTION=VALUE`.
   - Use the CUDA RPM package version, i.e. `12-9`
   - Selects the CUDA SDK version to install at runtime
 - `ROCM_VERSION`
-  - Specifies the ROCm image to use
-  - Use the ROCm RPM package version, i.e. `6.3.4`
+  - Use the ROCm RPM package version, i.e. `7.1.1`
+  - Selects the ROCm SDK version to install at runtime
+- `ROCM_RHEL_VERSION`
+  - RHEL version for ROCm repo packages, i.e. `9.7`
 - `CENTOS_VERSION`
   - CentOS Stream image version to use
 - `MAX_JOBS`
@@ -303,7 +293,7 @@ Arguments that can be added to the run commands below, i.e. `OPTION=VALUE`.
 > **_NOTE_**: it's also advised that you commit the image after it's
   completed initialization
   `[podman|docker] commit <container_id>
-  quay.io/triton-dev-containers/[cuda|cpu|rocm]:<image tag>`
+  quay.io/triton-dev-containers/base:<image tag>`
 
 > **_NOTE_**: if you do provide a triton_path you should run `git submodule init`
 and `git submodule update` on the mounted repo if you haven't already run
@@ -342,10 +332,11 @@ non-passworded usage of it.
 
 ## Why do the containers install some dependencies at startup time?
 
-Some dependencies are installed at runtime to optimize image size of
-the development containers. This allows the images to remain
-lightweight while still providing all necessary functionality.
-The packages installed at startup time can be found in
+All accelerator SDKs (CUDA, ROCm) and framework dependencies are
+installed at runtime. This keeps the base image thin and generic,
+allowing the same image to target any supported accelerator and
+version through environment variables. The packages installed at
+startup time can be found in
 [devinstall_software.sh](./scripts/devinstall_software.sh).
 
 ## Using the containers as a base for a customized container
