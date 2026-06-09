@@ -48,7 +48,6 @@ IMAGE_REPO = quay.io/triton-dev-containers
 
 # Image name definitions (clean and extensible)
 BASE_IMAGE_NAME = base
-CPU_IMAGE_NAME  = cpu
 CUDA_IMAGE_NAME = cuda
 ROCM_IMAGE_NAME = rocm
 
@@ -56,7 +55,6 @@ ROCM_IMAGE_NAME = rocm
 IMAGE_TAG      := centos$(CENTOS_VERSION)
 
 BASE_IMAGE_TAG := $(IMAGE_TAG)
-CPU_IMAGE_TAG  := $(IMAGE_TAG)
 CUDA_IMAGE_TAG := $(CUDA_VERSION)-$(IMAGE_TAG)
 ROCM_IMAGE_TAG := $(ROCM_VERSION)-$(IMAGE_TAG)
 
@@ -136,7 +134,7 @@ define build-image
 endef
 
 .PHONY: build-images
-build-images: cuda-image cpu-image rocm-image ## Build all container images
+build-images: cuda-image rocm-image ## Build all container images
 
 define base_image_build_args
 --build-arg CENTOS_VERSION=$(CENTOS_VERSION) \
@@ -158,10 +156,6 @@ endef
 cuda-image: dockerfiles/Dockerfile.cuda | base-image ## Build a CUDA container image
 	$(call build-image,$(CUDA_IMAGE_NAME),$(CUDA_IMAGE_TAG),$(image_build_args) \
 		--build-arg BUILD_CUDA_VERSION=$(CUDA_VERSION),$<)
-
-.PHONY: cpu-image
-cpu-image: dockerfiles/Dockerfile.cpu |  base-image ## Build a CPU container image
-	$(call build-image,$(CPU_IMAGE_NAME),$(CPU_IMAGE_TAG),$(image_build_args),$<)
 
 .PHONY: rocm-image
 rocm-image: dockerfiles/Dockerfile.rocm | base-image ## Build a ROCm container image
@@ -275,16 +269,16 @@ define ROCM_RUNTIME_ARGS
 endef
 
 .PHONY: base-run
-base-run: ## Run the Base container image
-	@./triton-dev-containers.sh $(RUNTIME_ARGS) -d $(BASE_IMAGE_NAME)
+base-run: ## Run the base container
+	@./triton-dev-containers.sh $(RUNTIME_ARGS) -d base
 
 .PHONY: cuda-run
 cuda-run: ## Run the CUDA container image
 	@./triton-dev-containers.sh $(CUDA_RUNTIME_ARGS) -d $(CUDA_IMAGE_NAME)
 
 .PHONY: cpu-run
-cpu-run: ## Run the CPU container image
-	@./triton-dev-containers.sh $(CPU_RUNTIME_ARGS) -d $(CPU_IMAGE_NAME)
+cpu-run: ## Run a CPU container
+	@./triton-dev-containers.sh $(CPU_RUNTIME_ARGS) -d cpu
 
 .PHONY: rocm-run
 rocm-run: ## Run the ROCm container image
@@ -295,8 +289,8 @@ helion-cuda-run: ## Run the Helion CUDA container image
 	@./triton-dev-containers.sh $(CUDA_RUNTIME_ARGS) -d $(CUDA_IMAGE_NAME) -k helion
 
 .PHONY: helion-cpu-run
-helion-cpu-run: ## Run the Helion CPU container image
-	@./triton-dev-containers.sh $(CPU_RUNTIME_ARGS) -d $(CPU_IMAGE_NAME) -k helion
+helion-cpu-run: ## Run the Helion CPU container
+	@./triton-dev-containers.sh $(CPU_RUNTIME_ARGS) -d cpu -k helion
 
 .PHONY: helion-rocm-run
 helion-rocm-run: ## Run the Helion ROCm container image
@@ -307,8 +301,8 @@ triton-cuda-run: ## Run the Triton CUDA container image
 	@./triton-dev-containers.sh $(CUDA_RUNTIME_ARGS) -d $(CUDA_IMAGE_NAME) -k triton
 
 .PHONY: triton-cpu-run
-triton-cpu-run: ## Run the Triton CPU container image
-	@./triton-dev-containers.sh $(CPU_RUNTIME_ARGS) -d $(CPU_IMAGE_NAME) -k triton
+triton-cpu-run: ## Run the Triton CPU container
+	@./triton-dev-containers.sh $(CPU_RUNTIME_ARGS) -d cpu -k triton
 
 .PHONY: triton-rocm-run
 triton-rocm-run: ## Run the Triton ROCm container image
@@ -319,8 +313,8 @@ torch-cuda-run: ## Run the PyTorch CUDA container image
 	@./triton-dev-containers.sh $(CUDA_RUNTIME_ARGS) -d $(CUDA_IMAGE_NAME) -k torch
 
 .PHONY: torch-cpu-run
-torch-cpu-run: ## Run the PyTorch CPU container image
-	@./triton-dev-containers.sh $(CPU_RUNTIME_ARGS) -d $(CPU_IMAGE_NAME) -k torch
+torch-cpu-run: ## Run the PyTorch CPU container
+	@./triton-dev-containers.sh $(CPU_RUNTIME_ARGS) -d cpu -k torch
 
 .PHONY: torch-rocm-run
 torch-rocm-run: ## Run the PyTorch ROCm container image
@@ -331,8 +325,8 @@ vllm-cuda-run: ## Run the vLLM CUDA container image
 	@./triton-dev-containers.sh $(CUDA_RUNTIME_ARGS) -d $(CUDA_IMAGE_NAME) -k vllm
 
 .PHONY: vllm-cpu-run
-vllm-cpu-run: ## Run the vLLM CPU container image
-	@./triton-dev-containers.sh $(CPU_RUNTIME_ARGS) -d $(CPU_IMAGE_NAME) -k vllm
+vllm-cpu-run: ## Run the vLLM CPU container
+	@./triton-dev-containers.sh $(CPU_RUNTIME_ARGS) -d cpu -k vllm
 
 .PHONY: vllm-rocm-run
 vllm-rocm-run: ## Run the vLLM ROCm container image

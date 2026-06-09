@@ -103,3 +103,9 @@ COPY scripts/devsetup.sh ${WORKSPACE}/tools/devsetup
 COPY scripts/ldpretend.sh ${WORKSPACE}/tools/ldpretend
 
 COPY hack/triton-gpu-check.py ${WORKSPACE}/tools/triton-gpu-check
+
+COPY examples/ examples/
+
+COPY scripts/entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
+CMD ["tail", "-f", "/dev/null"]
