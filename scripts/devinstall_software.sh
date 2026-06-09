@@ -143,8 +143,32 @@ EOF
 			"/opt/nvidia/nsight-compute/${COMPUTE_VERSION}/ncu-ui" 100
 	fi
 elif [ -n "${ROCM_VERSION:-}" ]; then
+	ROCM_RHEL_VERSION="${ROCM_RHEL_VERSION:-9.7}"
+	AMDGPU_INSTALL_URL="https://repo.radeon.com/amdgpu-install/${ROCM_VERSION}/rhel/${ROCM_RHEL_VERSION}"
+
+	echo "Installing the AMD ROCm repository ..."
+	# shellcheck disable=SC1091
+	AMDGPU_INSTALL_RPM=$(set -o pipefail && source /etc/os-release && \
+		curl -s "${AMDGPU_INSTALL_URL}/" | grep href | \
+		sed -e 's/.*href="//' -e 's/".*//' | \
+		grep "amdgpu-install-${ROCM_VERSION%.*}.*${PLATFORM_ID#*:}.noarch.rpm")
+	$SUDO dnf -y install "${AMDGPU_INSTALL_URL}/${AMDGPU_INSTALL_RPM}"
+
+	if [ -f /etc/dnf/vars/amdgpudistro ]; then
+		echo "Setting AMDGPU Distro RHEL version ..."
+		echo "$ROCM_RHEL_VERSION" | $SUDO tee /etc/dnf/vars/amdgpudistro >/dev/null
+	fi
+
 	echo "Installing ROCm build dependencies ..."
-	$SUDO dnf -y install miopen-hip rocm-core rocm-hip-libraries
+	$SUDO dnf -y install --nodocs --setopt=install_weak_deps=False \
+		amd-smi-lib rocminfo miopen-hip rocm-core rocm-hip-libraries
+
+	echo "Adding ROCm paths to ${HOME}/.bashrc.d/00-rocm_path.sh ..."
+	tee "${HOME}/.bashrc.d/00-rocm_path.sh" <<EOF
+export ROCM_PATH=/opt/rocm
+export LD_LIBRARY_PATH=/usr/lib64:/usr/lib:/opt/rocm/lib:/opt/rocm/llvm/lib\${LD_LIBRARY_PATH:+:\$LD_LIBRARY_PATH}
+export PATH=/opt/rocm/bin:/opt/rocm/llvm/bin:\$PATH
+EOF
 
 	if [ "${INSTALL_TOOLS:-}" = "true" ]; then
 		echo "Installing ROCm Developer Tools ..."
@@ -154,7 +178,7 @@ elif [ -n "${ROCM_VERSION:-}" ]; then
 			pip_install -r "/opt/rocm-${ROCM_VERSION}/libexec/rocprofiler-compute/requirements.txt"
 		fi
 
-		echo "Installing ROCm build dependencies ..."
+		echo "Installing ROCm SMI Python bindings ..."
 		if [ -e "/opt/rocm/share/amd_smi" ]; then
 			pip_install /opt/rocm/share/amd_smi
 		fi
