@@ -90,6 +90,7 @@ declare -A DEFAULT_ENV_OPTS=(
 	["PIP_VLLM_VERSION"]=""
 	["ROCM_VERSION"]=7.1.1
 	["ROCR_VISIBLE_DEVICES"]=${ROCR_VISIBLE_DEVICES:-0}
+	["TRITON_CPU_BACKEND"]=0
 	["USE_CCACHE"]=0
 	["USERNAME"]=""
 	["USER_UID"]=""
@@ -284,6 +285,9 @@ set_device_opts() {
 		set_env_opt CUDA_VISIBLE_DEVICES "${DEFAULT_ENV_OPTS["CUDA_VISIBLE_DEVICES"]}"
 		IMAGE_TAG=${ENV_OPTS["CUDA_VERSION"]}-${DEFAULT_IMAGE_TAG}
 		;;
+	cpu)
+		set_env_opt TRITON_CPU_BACKEND 1
+		;;
 	esac
 }
 
@@ -433,7 +437,13 @@ if [ "${DELETE_ON_EXIT:-}" = "true" ]; then
 	CTR_RUN_ARGS+=("--rm")
 fi
 
-IMAGE=${IMAGE:-${DEFAULT_IMAGE_REPO}/${TARGET_DEVICE}:${IMAGE_TAG:-${DEFAULT_IMAGE_TAG}}}
+# Resolve image name from target device (cpu uses the base image)
+case ${TARGET_DEVICE,,} in
+	cpu|base) IMAGE_NAME=base ;;
+	*)        IMAGE_NAME=${TARGET_DEVICE} ;;
+esac
+
+IMAGE=${IMAGE:-${DEFAULT_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG:-${DEFAULT_IMAGE_TAG}}}
 
 # Build and cleanup the run command
 RUN_CMD="$CTR_CMD \
