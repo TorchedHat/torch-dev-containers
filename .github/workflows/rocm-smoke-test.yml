@@ -1,0 +1,57 @@
+name: rocm-smoke-test
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/rocm-smoke-test.yml
+      - dockerfiles/Dockerfile
+      - scripts/**
+  pull_request:
+    paths:
+      - .github/workflows/rocm-smoke-test.yml
+      - dockerfiles/Dockerfile
+      - scripts/**
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
+      - name: Build base image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: dockerfiles/Dockerfile
+          push: false
+          load: true
+          tags: triton-dev-containers/base:centos9
+          build-args: |
+            CENTOS_VERSION=9
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Run ROCm smoke test
+        run: |
+          docker run --rm \
+            -e ROCM_VERSION=7.1.1 \
+            -e ROCM_RHEL_VERSION=9.7 \
+            triton-dev-containers/base:centos9 \
+            bash -c '
+              set -euo pipefail
+              echo "=== ROCm Smoke Test ==="
+              echo "Checking Python..."
+              python3 --version
+              echo "Checking ROCm installation..."
+              test -d /opt/rocm
+              echo "Checking ROCm binaries..."
+              ls /opt/rocm/bin/
+              echo "=== ROCm Smoke Test PASSED ==="
+            '
