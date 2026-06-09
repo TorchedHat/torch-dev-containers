@@ -71,8 +71,6 @@ Arguments that can be added to the build commands below, i.e. `OPTION=VALUE`.
 
 - `CENTOS_VERSION`
   - CentOS Stream image version to use, i.e. `9`
-- `CUDA_VERSION`
-  - Use the CUDA RPM package version, i.e. `12-9`
 - `GOSU_VERSION`
   - Check the gosu GitHub for the desired release
   - <https://github.com/tianon/gosu>
@@ -95,12 +93,6 @@ make build-images [OPTIONS]
 make base-image [OPTIONS]
 ```
 
-#### NVIDIA CUDA container build
-
-```sh
-make cuda-image [OPTIONS]
-```
-
 #### AMD ROCm container build
 
 ```sh
@@ -117,7 +109,7 @@ Arguments that can be added to the run commands below, i.e. `OPTION=VALUE`.
 
 - `CUDA_VERSION`
   - Use the CUDA RPM package version, i.e. `12-9`
-  - Specifies the CUDA image to use
+  - Selects the CUDA SDK version to install at runtime
 - `ROCM_VERSION`
   - Specifies the ROCm image to use
   - Use the ROCm RPM package version, i.e. `6.3.4`
