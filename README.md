@@ -101,12 +101,6 @@ make base-image [OPTIONS]
 make cuda-image [OPTIONS]
 ```
 
-#### CPU container build
-
-```sh
- make cpu-image [OPTIONS]
-```
-
 #### AMD ROCm container build
 
 ```sh
