@@ -125,6 +125,10 @@ EOF
 	fi
 
 	if [ "${INSTALL_TOOLS:-}" = "true" ]; then
+		echo "Installing NVIDIA Nsight GUI dependencies ..."
+		$SUDO dnf -y install libglvnd-opengl libxkbfile \
+			qt5-qtwayland xcb-util-cursor
+
 		echo "Installing NVIDIA Nsight ..."
 		$SUDO dnf -y install cublasmp "cuda-gdb-$CUDA_VERSION" \
 			"cuda-nsight-$CUDA_VERSION" "cuda-nsight-compute-$CUDA_VERSION" \

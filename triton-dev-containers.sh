@@ -283,7 +283,6 @@ set_device_opts() {
 
 		set_env_opt CUDA_VERSION "${DEFAULT_ENV_OPTS["CUDA_VERSION"]}"
 		set_env_opt CUDA_VISIBLE_DEVICES "${DEFAULT_ENV_OPTS["CUDA_VISIBLE_DEVICES"]}"
-		IMAGE_TAG=${ENV_OPTS["CUDA_VERSION"]}-${DEFAULT_IMAGE_TAG}
 		;;
 	cpu)
 		set_env_opt TRITON_CPU_BACKEND 1
@@ -439,8 +438,8 @@ fi
 
 # Resolve image name from target device (cpu uses the base image)
 case ${TARGET_DEVICE,,} in
-	cpu|base) IMAGE_NAME=base ;;
-	*)        IMAGE_NAME=${TARGET_DEVICE} ;;
+	cpu|cuda|base) IMAGE_NAME=base ;;
+	*)             IMAGE_NAME=${TARGET_DEVICE} ;;
 esac
 
 IMAGE=${IMAGE:-${DEFAULT_IMAGE_REPO}/${IMAGE_NAME}:${IMAGE_TAG:-${DEFAULT_IMAGE_TAG}}}
